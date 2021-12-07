@@ -42,6 +42,7 @@ object StartApp extends App {
 
   val record2 = new ProducerRecord[String, String]("CustomerCountry", "Biomedical Materials", "USA")
   producer.send(record2, DemoProducerCallback())
+  Thread.sleep(1000)
 
   // Additional configuration properties
   // acks
