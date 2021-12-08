@@ -10,12 +10,10 @@ import scala.util.Try
 object AvroSerialization extends App {
 
   // example using generic Avro objects
-  case class Customer(customerId: Int, customerName: String, email: String)
-
   val props = new Properties()
 
   props.put("bootstrap.servers", "localhost:9092")
-  props.put("key.serializer", "io.confluent.kafka.serializers.KafkaAvroSerializer")
+  props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
   props.put("value.serializer", "io.confluent.kafka.serializers.KafkaAvroSerializer")
   props.put("schema.registry.url", "http://localhost:8081")
 
@@ -45,7 +43,7 @@ object AvroSerialization extends App {
     _ = customer.put("id", n)
     _ = customer.put("name", name)
     _ = customer.put("email", email)
-    record = new ProducerRecord[String, GenericRecord]("customerContacts", name, customer)
+    record = new ProducerRecord[String, GenericRecord]("CustomerContacts", name, customer)
     _ = Try(producer.send(record).get).toEither match {
       case Left(e) => e.printStackTrace()
       case Right(value) => println(value.offset())

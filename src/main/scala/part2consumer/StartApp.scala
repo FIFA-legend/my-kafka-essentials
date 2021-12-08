@@ -61,7 +61,7 @@ object StartApp extends App {
   // It is useful to wrap the consumer logic in its own object and then use Java’s ExecutorService
   // to start multiple threads each with its own consumer.
 
-  // One more example of code
+  //  One more example of code
   //  val consumer: KafkaConsumer[String, String] = new KafkaConsumer[String, String](kafkaProperties)
   //  consumer.subscribe(util.Arrays.asList("CustomerCountry"))
   //  while (true) {
@@ -88,7 +88,7 @@ object StartApp extends App {
   // auto.offset.reset
   // This property controls the behavior of the consumer when it starts reading a partition
   // for which it does not have a committed offset or if the committed offset it has is invalid
-  // The default is “latest,” which means that lacking a valid offset, the consumer will start reading from the newest records (records that
+  // The default is “latest” which means that lacking a valid offset, the consumer will start reading from the newest records (records that
   // were written after the consumer started running). The alternative is “earliest,” which means
   // that lacking a valid offset, the consumer will read all the data in the partition, starting from the very beginning.
   // enable.auto.commit
