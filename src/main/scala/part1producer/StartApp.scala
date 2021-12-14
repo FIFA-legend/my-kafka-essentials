@@ -18,18 +18,20 @@ object StartApp extends App {
   // types of record must match our serializer and producer types
   val record = new ProducerRecord[String, String]("CustomerCountry", "Precision Products", "France")
 
-  //  This method is used when dropping a message is acceptable (fire-and-forget)
-  //  Try(producer.send(record)).toEither match {
-  //    case Left(e) => e.printStackTrace()
-  //    case Right(value) => println(value.toString)
-  //  }
+  // This method is used when dropping a message is acceptable (fire-and-forget)
+  Try {
+    println(producer.send(record).toString)
+  }.recover {
+    case e: Exception => e.printStackTrace()
+  }
 
   // Sending message synchronously
   // There are 2 types of exceptions in Kafka: retriable and non-retriable
-  //  Try(producer.send(record).get).toEither match {
-  //    case Left(e) => e.printStackTrace()
-  //    case Right(value) => println(value.offset())
-  //  }
+  Try {
+    println("Message offset: " + producer.send(record).get.offset())
+  }.recover {
+    case e: Exception => e.printStackTrace()
+  }
 
   // Sending message asynchronously
   // Second argument in method send() must implement Callback class with single method onCompletion()
