@@ -35,7 +35,7 @@ object AvroSerialization extends App {
   val parser = new Schema.Parser()
   val schema = parser.parse(schemaInString)
 
-  for {
+  val result = for {
     n <- 1 to 5
     name = "ExampleCustomer" + n
     email = "example" + n + "@example.com"
@@ -44,10 +44,13 @@ object AvroSerialization extends App {
     _ = customer.put("name", name)
     _ = customer.put("email", email)
     record = new ProducerRecord[String, GenericRecord]("CustomerContacts", name, customer)
-    _ = Try(producer.send(record).get).toEither match {
-      case Left(e) => e.printStackTrace()
-      case Right(value) => println(value.offset())
-    }
-  } yield ()
+    offsets = Try {
+        producer.send(record).get.offset()
+      }.toEither
+        .left
+        .map(_.getCause)
+  } yield offsets
+
+  println(result)
 
 }

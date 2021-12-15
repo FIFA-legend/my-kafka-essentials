@@ -1,15 +1,15 @@
 package part1producer.custom_serialization
 
-import part1producer.custom_serialization.CustomSerialization.Customer
+import part1producer.custom_serialization.CustomSerialization.SimpleCustomer
 import org.apache.kafka.common.serialization.Serializer
 
 import java.nio.ByteBuffer
 
-class CustomerSerializer extends Serializer[Customer] {
-  override def serialize(topic: String, data: Customer): Array[Byte] = {
+class CustomerSerializer extends Serializer[SimpleCustomer] {
+  override def serialize(topic: String, data: SimpleCustomer): Array[Byte] = {
     if (data == null) null
     else {
-      val (serializedName, stringSize) =
+      val (serializedName, nameSize) =
         if (data.customerName != null) {
           val serializedName = data.customerName.getBytes("UTF-8")
           (serializedName, serializedName.length)
@@ -18,9 +18,9 @@ class CustomerSerializer extends Serializer[Customer] {
           (serializedName, 0)
         }
 
-      val buffer = ByteBuffer.allocate(4 + 4 + stringSize)
+      val buffer = ByteBuffer.allocate(4 + 4 + nameSize)
       buffer.putInt(data.customerId)
-      buffer.putInt(stringSize)
+      buffer.putInt(nameSize)
       buffer.put(serializedName)
       buffer.array()
     }

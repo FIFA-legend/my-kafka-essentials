@@ -30,8 +30,7 @@ object AvroSerialization3 extends App {
   val record = new ProducerRecord[String, Customer](topic, customer)
   producer.send(record, (metadata: RecordMetadata, e: Exception) => {
     if (e == null) {
-      println("Success!")
-      println(metadata.toString)
+      println(s"Topic: ${metadata.topic()}, Partition: ${metadata.partition()}, Offset: ${metadata.offset()}, Timestamp: ${metadata.timestamp()}")
     } else {
       e.printStackTrace()
     }
