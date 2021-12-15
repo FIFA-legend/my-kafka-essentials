@@ -27,7 +27,7 @@ object KafkaPartitions extends App {
       if ((keyBytes == null) || (!key.isInstanceOf[String]))
         throw new InvalidRecordException("Name should be a string")
 
-      if (key.asInstanceOf[String] == "Banana") partitionsNumber
+      if (key.asInstanceOf[String] == "Banana") partitionsNumber - 1
       else Math.abs(Utils.murmur2(keyBytes)) % (partitionsNumber - 1)
     }
 
