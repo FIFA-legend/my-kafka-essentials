@@ -33,6 +33,7 @@ object CorrectExit extends App {
     new Thread() {
       override def start(): Unit = {
         println("Starting exit from Kafka Consumer...")
+        Thread.sleep(1000)
         kafkaConsumer.wakeup()
         Try(mainThread.join())
           .toEither
@@ -42,7 +43,7 @@ object CorrectExit extends App {
     }
   )
 
-  try {
+  Try {
     kafkaConsumer.subscribe(Collections.singletonList("CustomerCountry"))
     while (true) {
       val records = kafkaConsumer.poll(Duration.ofMillis(100))
@@ -51,12 +52,11 @@ object CorrectExit extends App {
       }
       kafkaConsumer.commitSync()
     }
-  } catch {
+  }.recover {
     case _: WakeupException => println("Wake up method is caught")
     case e: Exception => println(s"Unexpected error: $e")
-  } finally {
-      kafkaConsumer.close()
-      println("Consumer is finally closed")
   }
+  kafkaConsumer.close()
+  println("Consumer is finally closed")
 
 }

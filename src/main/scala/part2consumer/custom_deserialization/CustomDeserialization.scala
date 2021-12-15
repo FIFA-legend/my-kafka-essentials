@@ -7,7 +7,7 @@ import java.util.{Collections, Properties}
 
 object CustomDeserialization extends App {
 
-  case class Customer(customerId: Int, customerName: String)
+  case class SimpleCustomer(customerId: Int, customerName: String)
 
   val kafkaProperties = new Properties()
 
@@ -17,13 +17,14 @@ object CustomDeserialization extends App {
   kafkaProperties.put("group.id", "Customers")
   kafkaProperties.put("auto.offset.reset", "earliest")
 
-  val kafkaConsumer = new KafkaConsumer[String, Customer](kafkaProperties)
+  val kafkaConsumer = new KafkaConsumer[String, SimpleCustomer](kafkaProperties)
   kafkaConsumer.subscribe(Collections.singletonList("Customers"))
 
   while (true) {
     val records = kafkaConsumer.poll(Duration.ofMillis(100))
     records.forEach { record =>
-      println(s"Customer ID: ${record.value().customerId}, Customer Name: ${record.value().customerName}")
+      val customer = record.value()
+      println(s"Customer ID: ${customer.customerId}, Customer Name: ${customer.customerName}, Customer: $customer")
     }
   }
 

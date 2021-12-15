@@ -3,10 +3,12 @@ package part2consumer
 import org.apache.kafka.clients.consumer.{ConsumerRebalanceListener, KafkaConsumer, OffsetAndMetadata}
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.errors.WakeupException
+import part2consumer.UtilObject.printRecord
 
 import java.time.Duration
 import java.util
 import java.util.{Collections, Properties}
+import scala.util.Try
 
 object BalanceListener extends App {
 
@@ -31,26 +33,25 @@ object BalanceListener extends App {
 
   val kafkaConsumer = new KafkaConsumer[String, String](kafkaProperties)
 
-  try {
+  Try {
     kafkaConsumer.subscribe(Collections.singletonList("CustomerCountry"), new HandleBalance)
     while (true) {
       val records = kafkaConsumer.poll(Duration.ofMillis(100))
       records.forEach { record =>
-        println(s"topic = ${record.topic}, partition = ${record.partition}, offset = ${record.offset}, customer = ${record.key}, country = ${record.value}")
+        printRecord(record)
         currentOffsets.put(new TopicPartition(record.topic(), record.partition()), new OffsetAndMetadata(record.offset() + 1, "no meta"))
       }
       kafkaConsumer.commitAsync(currentOffsets, null)
     }
-  } catch {
+  }.recover {
     case _: WakeupException =>
     case e: Exception => println(s"Unexpected error: $e")
-  } finally {
-    try {
-      kafkaConsumer.commitSync(currentOffsets)
-    } finally {
-      kafkaConsumer.close()
-      println("Consumer is closed")
-    }
   }
+
+  Try {
+    kafkaConsumer.commitSync(currentOffsets)
+  }
+  kafkaConsumer.close()
+  println("Consumer is closed")
 
 }

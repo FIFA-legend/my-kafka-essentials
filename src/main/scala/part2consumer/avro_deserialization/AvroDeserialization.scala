@@ -10,7 +10,7 @@ import scala.jdk.CollectionConverters.IterableHasAsScala
 object AvroDeserialization extends App {
 
   // Deserialization out of GenericRecord
-  case class Customer(id: Int, name: String, email: String)
+  case class CustomerContacts(id: Int, name: String, email: String)
 
   val properties = new Properties()
 
@@ -34,7 +34,7 @@ object AvroDeserialization extends App {
         val id = genericRecord.get("id")
         val name = genericRecord.get("name")
         val email = genericRecord.get("email")
-        val customer = Customer(id.toString.toInt, name.toString, email.toString)
+        val customer = CustomerContacts(id.toString.toInt, name.toString, email.toString)
         println(s"Key: ${record.key()}, Customer: $customer")
     }
   }

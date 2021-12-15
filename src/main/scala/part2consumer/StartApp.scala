@@ -1,13 +1,10 @@
 package part2consumer
 
-import org.apache.kafka.clients.consumer.{KafkaConsumer, OffsetAndMetadata, OffsetCommitCallback}
-import org.apache.kafka.common.TopicPartition
+import org.apache.kafka.clients.consumer.KafkaConsumer
+import part2consumer.UtilObject.printRecord
 
 import java.time.Duration
-import java.util
 import java.util.{Collections, Properties}
-import scala.jdk.CollectionConverters.IterableHasAsScala
-import scala.util.Try
 
 object StartApp extends App {
 
@@ -23,8 +20,8 @@ object StartApp extends App {
   kafkaConsumer.subscribe(Collections.singletonList("CustomerCountry"))
 
   import org.json4s._
-  import org.json4s.native.Serialization._
   import org.json4s.native.Serialization
+  import org.json4s.native.Serialization._
 
   implicit val formats: AnyRef with Formats = Serialization.formats(NoTypeHints)
 
@@ -32,27 +29,27 @@ object StartApp extends App {
   while (true) {
     val records = kafkaConsumer.poll(Duration.ofMillis(100))
     records.forEach { record =>
-      println(s"topic = ${record.topic}, partition = ${record.partition}, offset = ${record.offset}, customer = ${record.key}, country = ${record.value}")
+      printRecord(record)
       customerCountryMap.put(record.value(), customerCountryMap.getOrElse(record.value(), 0) + 1)
 
       val json = write(customerCountryMap)
       println(json)
     }
     // commit synchronously last message received by poll()
-    // kafkaConsumer.commitSync()
+    kafkaConsumer.commitSync()
 
     // commit asynchronously last message received by poll()
-    // kafkaConsumer.commitAsync()
+    kafkaConsumer.commitAsync()
 
     // commit asynchronously last message received by poll() with callback on error
-    //    kafkaConsumer.commitAsync(
-    //      (offsets, e) => {
-    //        if (e != null) {
-    //          println(s"Failed commit for offset: $offsets")
-    //          e.printStackTrace()
-    //        }
-    //      }
-    //    )
+    kafkaConsumer.commitAsync(
+      (offsets, e) => {
+        if (e != null) {
+          println(s"Failed commit for offset: $offsets")
+          e.printStackTrace()
+        }
+      }
+    )
   }
 
   // You can’t have multiple consumers that belong to the same group in one thread
@@ -117,41 +114,5 @@ object StartApp extends App {
   // receive.buffer.bytes, send.buffer.bytes
   // These are the sizes of the TCP send and receive buffers used by the sockets when writing and reading data.
   // If these are set to -1, the OS defaults will be used.
-
-  // Combining Synchronous and Asynchronous Commits
-  try {
-    while (true) {
-      val records = kafkaConsumer.poll(Duration.ofMillis(100)).asScala
-      for {
-        record <- records
-        _ = println(s"topic = ${record.topic}, partition = ${record.partition}, offset = ${record.offset}, customer = ${record.key}, country = ${record.value}")
-      } yield ()
-      kafkaConsumer.commitAsync()
-    }
-  } catch {
-    case e: Exception => println(s"Unexpected error: $e")
-  } finally {
-    try {
-      kafkaConsumer.commitSync()
-    } finally {
-      kafkaConsumer.close()
-    }
-  }
-
-  // Commit Specified Offset
-  val currentOffsets = new util.HashMap[TopicPartition, OffsetAndMetadata]
-  var count = 0
-
-  while (true) {
-    val records = kafkaConsumer.poll(Duration.ofMillis(100))
-    records.forEach { record =>
-      println(s"topic = ${record.topic}, partition = ${record.partition}, offset = ${record.offset}, customer = ${record.key}, country = ${record.value}")
-      customerCountryMap.put(record.value(), customerCountryMap.getOrElse(record.value(), 0) + 1)
-
-      currentOffsets.put(new TopicPartition(record.topic(), record.partition()), new OffsetAndMetadata(record.offset() + 1, "no meta"))
-      if (count % 1000 == 0) kafkaConsumer.commitAsync(currentOffsets, null)
-      count = count + 1
-    }
-  }
 
 }
